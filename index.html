@@ -6,11 +6,13 @@
 
 		<title>reveal.js</title>
 
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700,600,300' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="css/reveal.css">
 		<link rel="stylesheet" href="css/theme/black.css">
 
 		<!-- Theme used for syntax highlighting of code -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
+    <link rel="stylesheet" href="fonts/css/font-awesome.min.css"
 
 		<!-- Printing and PDF exports -->
 		<script>
@@ -24,8 +26,402 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+				<section>
+          <canvas>
+
+          </canvas>
+          <h1 style="text-align:right">Functors,</h1>
+          <h1 style="text-align:right">Monads,</h1>
+          <h2 style="text-align:right">and other scary things</h2>
+          <h2 style="text-align:right">(that aren't so scary)</h2>
+        </section>
+				<section>
+          <h3>Josh Miller</h3>
+          <p><i class="fa fa-twitter fa-lg" style="color:#00aced;"></i> @joshmili</p>
+          <p><i class="fa fa-github fa-lg" style="color:#ccc;"></i> Josh-Miller</p>
+        </section>
+        <section data-background-color="#00b7ef">
+          <h2 style="text-align:left;color:#fff;">It starts with...</h2>
+          <!-- <img src="/img/2000px-Lambda-logo.svg.png" width="600" /> -->
+          <span class="fragment fade-in">
+            <h2 style="color:#fff;">&lambda; Functional Programming</h2>
+          </span>
+          <span class="fragment fade-in">
+            <p style="color:#fff;font-style:italic;margin-top:80px;">To build simple, composable, and declarative systems.</p>
+          </span>
+        </section>
+        <section>
+          <h2>The basics...</h2>
+          <ul>
+            <li>Immutability</li>
+            <li>Higher-order functions</li>
+            <li>Pure functions</li>
+            <li>Currying</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Immutability</h2>
+          <p>Once a value is applied to a variable, that variable's value cannot change.</p>
+          <pre><code>
+            // BAD!!
+            let arr = [1,2,3];
+            arr.push(4);
+
+            // arr is [1,2,3,4]
+
+            // Good
+            let arr = [1,2,3];
+            let newArr = arr.concat([4]);
+
+            // arr is still [1,2,3]
+            // newArr is [1,2,3,4]
+          </code></pre>
+        </section>
+        <section>
+          <h2>Higher-order Functions</h2>
+          <p>Functions are just values and can be assigned to variables. They can be passed into functions or returned from functions.</p>
+          <pre><code>
+            // The callback - passing in a function
+            someFunction('someString', a => a.toUpperCase());
+
+            // Returning a function
+            const logger = () => (a) => console.log;
+
+            // or
+
+            function logger() {
+              return function(a) {
+                console.log(a);
+              }
+            }
+
+          </code></pre>
+        </section>
+        <section>
+          <h2>Pure Functions</h2>
+          <p>Functions take input and return output. No side-effects, meaning a function does not modify the outside world.</p>
+          <code><pre>
+            // You do not want to do this...
+            let someVar = 5
+
+            function addOne(a) {
+              someVar++;
+              return a + 1;
+            }
+
+            // Ahh purity
+            function greet(a) {
+              return 'Hello '.concat(a);
+            }
+          </code></pre>
+        </section>
+        <section>
+          <h2>Currying</h2>
+          <p>Take a function with multiple arguments and evaluate it as a sequence of functions each containing a single argument.</p>
+          <code><pre>
+            // Normal function
+            function add(a,b) {
+              return a + b;
+            }
+
+            add(2, 2);
+            // 4
+          </code></pre>
+        </section>
+        <section>
+          <h3>Curried Functions</h3>
+          <code><pre>
+            // Curried function
+            function add(a) {
+              return function(b) {
+                return a + b;
+              }
+            }
+            add(2)(2);
+            // 4
+
+            const add2 = add(2);
+            add2(3);
+            // 5
+          </code></pre>
+
+        </section>
+        <section>
+          <h3>More Curry</h3>
+          <code><pre>
+            const getFromDatabase = function(db) {
+              return function(filters) {
+                return db.filter(filters);
+              }
+            };
+
+            const dbDriver = {...db settings and driver};
+            const getDataFromMyDb = getFromDatabase(dbDriver);
+
+            // Let's get some data
+            const myData = getDataFromMyDb(x => x > 5);
+          </code></pre>
+          <aside class="notes">
+            Currying is to functional programming as inheritance is to OOP.
+          </aside>
+        </section>
+        <section data-background-image="/img/violin.jpeg">
+          <h1 style="text-shadow: 0 0 3px rgba(0,0,0,0.4);">Composition</h1>
+        </section>
+        <section>
+          <h2>The building blocks</h2>
+          <pre class="fragment"><code>
+            const compose = function(f, g) {
+              return function(x) {
+                return f(g(x));
+              };
+            };
+          </code></pre>
+        </section>
+        <section>
+          <h3 style="text-align:left;">We need to understand another paradigm<span class="fragment">, <span style="color:#42faca;">Point-free programming</span></span></h3>
+          <p class="fragment" style="font-style:italic;margin-top:95px;text-align:left;">Functions do not explicitly state their arguments.</p>
+          <p class="fragment" style="font-style:italic;text-align:left;">Each function only takes one argument.</p>
+        </section>
+        <section>
+          <h3>Now let's take a look</h3>
+          <pre><code>
+            // exclaim :: String -> String
+            const exclaim = a => a.concat('!');
+            // upper :: String -> String
+            const upper = a => a.toUpperCase();
+
+            const shout = compose(exclaim, upper);
+            shout('hello');
+            // HELLO!
+          </code></pre>
+        </section>
+        <section>
+          <h2>We can build functions like legos</h2>
+          <p>Building up more powerful functions from smaller ones.</p>
+        </section>
+        <section data-background-image="/img/map.jpeg">
+          <h1 style="text-shadow: 0 0 3px rgba(0,0,0,0.4);">Functors</h1>
+        </section>
+        <section>
+          It's kind of like a box<span class="fragment">, or container</span><span class="fragment">, or a context.</span>
+          <h3 class="fragment" style="color: #ffd8ad;">It's all of the above</h3>
+          <p class="fragment">A functor is a container that implements map.</p>
+        </section>
+        <section>
+          <h2>Let's make a box</h2>
+          <pre><code>
+            const Box = function(a) {
+              this.value = a;
+            }
+
+            Box.of = x => new Box(x);
+          </code></pre>
+        </section>
+        <section>
+          <h2>Let's implement map</h2>
+          <p>We have our value wrapped up, to make a change to it we need to map it.</p>
+          <pre class="fragment"><code>
+            // (a -> b) -> Box a -> Box b
+            Box.prototype.map = function(f) {
+              return Box.of(f(this.value));
+            }
+          </code></pre>
+        </section>
+        <section>
+          <h2>Maybe</h2>
+          <pre><code>
+            const Maybe = function(a) {
+              this.value = a;
+            }
+            Maybe.of = x => new Maybe(x);
+          </code></pre>
+        </section>
+        <section>
+          <pre><code>
+            Maybe.prototype.isEmpty = function() {
+              return (
+                this.value === null
+                || this.value === undefined
+              );
+            }
+
+            Maybe.prototype.map = function(f) {
+              return this.isEmpty()
+                ? Maybe.of(null)
+                : Maybe.of(f(this.value));
+            }
+            Maybe.of('hi').map(toUpper);
+            // Maybe('HI');
+            Maybe.of(null).map(toUpper);
+            // Maybe(null);
+          </code></pre>
+        </section>
+        <section>
+          <h3 class="align-left">This is more than just a container...</h3>
+          <h3 class="align-left">this is a <span style="color:#f76a88;">context</span>!</h3>
+
+          <aside class="notes">
+            For Universal Node.js applications, you can create a browser/server container.
+          </aside>
+        </section>
+        <section>
+          <h3>We can define map as a general function</h3>
+          <pre><code>
+            const map = curry(function(f, any_functor) {
+              return any_functor.map(f);
+            });
+          </code></pre>
+        </section>
+        <section>
+          <h3>Examples</h3>
+          <pre><code>
+      const phelps = {
+        name: 'Michael',
+        medals: [
+          {gold: 21},
+          {silver: 3},
+          {bronze: 2}
+        ]
+      };
+
+      const safeFirst = function(xs) {
+        return Maybe.of(xs[0]);
+      };
+
+      const goldMedalAdd = compose(map(add(1)), map(prop('gold')), safeFirst, prop('medals'));
+
+      goldMedalAdd(phelps);
+      // Maybe(22);
+          </code></pre>
+        </section>
+        <section>
+          <h3>Examples</h3>
+          <pre><code>
+      const miller = {
+        name: 'Josh',
+        medals: []
+      };
+
+      const safeFirst = function(xs) {
+        return Maybe.of(xs[0]);
+      };
+
+      const goldMedalAdd = compose(map(add(1)), map(prop('gold')), safeFirst, prop('medals'));
+
+      goldMedalAdd(miller);
+            // Maybe(null);
+          </code></pre>
+        </section>
+        <section data-background-image="/img/bundle.jpeg">
+          <h1 style="text-shadow: 0 0 3px rgba(0,0,0,0.4);">Monads</h1>
+        </section>
+        <section>
+          <h3>We get wrapped up in layers.</h3>
+          <pre><code>
+            Maybe.of(Maybe.of('Hellow World'));
+          </code></pre>
+
+          <p>We are nesting functions of our type.</p>
+        </section>
+        <section>
+          <h3>Examples</h3>
+          <pre><code>
+      const phelps = {
+        name: 'Michael',
+        medals: [
+          {gold: 21},
+          {silver: 3},
+          {bronze: 2}
+        ]
+      };
+
+      const safeProp = curry(function(x, obj) {
+        return Maybe.of(obj[x]);
+      });
+
+      const safeFirst = function(xs) {
+        return Maybe.of(xs[0]);
+      };
+
+      const goldMedalAdd = compose(map(map(prop('gold'))), map(safeFirst), safeProp('medals'));
+
+      goldMedalAdd(phelps);
+      // Maybe(Maybe(22));
+          </code></pre>
+        </section>
+        <section>
+          <h3>Let's create .join()</h3>
+          <pre><code>
+            const Maybe.prototype.join = function() {
+              return this.isEmpty() ? Maybe.of(null) : this.value;
+            }
+
+            const hellow = Maybe.of(Maybe.of('Hellow World'));
+            hellow.join();
+            // Maybe('Hellow World');
+          </code></pre>
+        </section>
+        <section>
+          <h3>Let's define chain (or flatMap)</h3>
+          <pre><code>
+            Maybe.prototype.chain = function(f){
+              return this.map(f).join();
+            };
+
+            // Maybe.prototype.flatMap = Maybe.prototype.chain;
+          </code></pre>
+        </section>
+        <section>
+          <h3>Examples</h3>
+          <pre><code>
+            Maybe.of(1).chain(function(one) {
+              return Maybe.of(2).map(add(one));
+            });
+
+            // Maybe(3);
+          </code></pre>
+        </section>
+        <section>
+          <h3>We can define chain as a general function</h3>
+          <pre><code>
+            const chain = curry(function(f, m){
+              return m.map(f).join();
+            });
+          </code></pre>
+        </section>
+        <section>
+          <h3>Examples</h3>
+          <pre><code>
+      const phelps = {
+        name: 'Michael',
+        medals: [
+          {gold: 21},
+          {silver: 3},
+          {bronze: 2}
+        ]
+      };
+
+      const safeProp = curry(function(x, obj) {
+        return Maybe.of(obj[x]);
+      });
+
+      const safeFirst = function(xs) {
+        return Maybe.of(xs[0]);
+      };
+
+      const goldMedalAdd = compose(map(prop('gold')), chain(safeFirst), safeProp('medals'));
+
+      goldMedalAdd(phelps);
+      // Maybe(22);
+          </code></pre>
+        </section>
+        <section>
+          <h2>We're bringing <span>safety</span> back to our programming.</h2>
+        </section>
+        <section>
+          <h1>Questions?</h1>
+        </section>
 			</div>
 		</div>
 
